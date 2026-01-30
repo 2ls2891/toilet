@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>화장실 상태 체크 - hyunnyapps</title>
+    <style>
+        :root {
+            --empty-color: #4CAF50;
+            --occupied-color: #F44336;
+        }
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            transition: background-color 0.5s ease;
+            color: white;
+            overflow: hidden;
+            background-color: #333;
+        }
+        .container {
+            text-align: center;
+            width: 100%;
+        }
+        .status-text {
+            font-size: 4rem;
+            font-weight: 900;
+            margin-bottom: 30px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        button {
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            border: 10px solid white;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 2.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            -webkit-tap-highlight-color: transparent;
+        }
+        button:active {
+            transform: scale(0.92);
+            background: rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="statusLabel" class="status-text">연결 중...</div>
+        <button id="toggleBtn">잠시만요</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, onValue, set, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAVZb98KBuK3wWv5aNUZouKyK2quBuU_co",
+            authDomain: "toiletcheck-370b3.firebaseapp.com",
+            databaseURL: "https://toiletcheck-370b3-default-rtdb.firebaseio.com",
+            projectId: "toiletcheck-370b3",
+            storageBucket: "toiletcheck-370b3.firebasestorage.app",
+            messagingSenderId: "511128605007",
+            appId: "1:511128605007:web:554206044c54ef2f92353a"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const statusRef = ref(db, 'toiletStatus');
+
+        const body = document.body;
+        const label = document.getElementById('statusLabel');
+        const btn = document.getElementById('toggleBtn');
+
+        onValue(statusRef, (snapshot) => {
+            const isOccupied = snapshot.val() || false;
+            updateUI(isOccupied);
+        });
+
+        function updateUI(isOccupied) {
+            if (isOccupied) {
+                body.style.backgroundColor = 'var(--occupied-color)';
+                label.innerText = '사용 중';
+                btn.innerText = '나오기';
+            } else {
+                body.style.backgroundColor = 'var(--empty-color)';
+                label.innerText = '비어있음';
+                btn.innerText = '들어가기';
+            }
+        }
+
+        btn.addEventListener('click', async () => {
+            const snapshot = await get(statusRef);
+            const currentStatus = snapshot.val() || false;
+            set(statusRef, !currentStatus);
+        });
+    </script>
+</body>
+</html>
